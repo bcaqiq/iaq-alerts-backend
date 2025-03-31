@@ -21,7 +21,11 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   }
+<<<<<<< HEAD
 }));
+=======
+}));  
+>>>>>>> af31c2a2e60fc2b8e643299934a4aa58cd2641a5
 const port = process.env.PORT || 3000;
 
 // Connect to MongoDB

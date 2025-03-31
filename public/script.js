@@ -587,7 +587,7 @@ document.getElementById('signupForm').addEventListener('submit', async function 
   data.fieldNum = 6;
 
   try {
-    const res = await fetch('https://iaq-alerts-api.onrender.com/signup', {
+    const res = await fetch('https://iaq-alerts-backend.onrender.com/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
