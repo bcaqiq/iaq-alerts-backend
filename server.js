@@ -12,6 +12,9 @@ const Subscriber = require('./models/Subscriber');
 const { fetchLatestAQI } = require('./services/thingspeak');
 
 const app = express();
+const port = process.env.PORT || 3000;
+
+// Allow Netlify frontend & local dev
 const allowedOrigins = ['https://bcaqiq.netlify.app', 'http://localhost:3000'];
 app.use(cors({
   origin: function (origin, callback) {
@@ -22,9 +25,8 @@ app.use(cors({
     }
   }
 }));
-const port = process.env.PORT || 3000;
 
-// Connect to MongoDB
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -35,9 +37,9 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-app.use(express.static('public')); // Serve website
+app.use(express.static('public')); // if needed
 
-// Email setup
+// Email Transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -46,7 +48,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Sign-up Route
+// Subscribe Route
 app.post('/signup', [
   body('email').isEmail(),
   body('device').notEmpty(),
@@ -63,37 +65,55 @@ app.post('/signup', [
   try {
     const sub = new Subscriber({ email, device, threshold, channelId, fieldNum });
     await sub.save();
-    res.json({ message: '✅ Subscribed for AQI alerts!' });
+    res.json({ message: '✅ Subscribed!' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Check AQI Every Minute
+// AQI Monitoring Loop
 setInterval(async () => {
   const subs = await Subscriber.find();
-  const alertsSent = new Set();
+  const now = new Date();
 
   for (const sub of subs) {
     const aqi = await fetchLatestAQI(sub.channelId, sub.fieldNum);
-    if (aqi && aqi > sub.threshold && !alertsSent.has(sub.email)) {
-      const msg = `⚠️ Air Quality Alert for ${sub.device}:\nAQI = ${aqi} (Threshold = ${sub.threshold})`;
+    if (typeof aqi !== 'number') continue;
+
+    const isAbove = aqi > sub.threshold;
+    const wasAbove = sub.lastAQIStatus === 'above';
+
+    // If AQI crosses from below to above threshold
+    if (isAbove && !wasAbove) {
+      const msg = `⚠️ Air Quality Alert for ${sub.device}:\nAQI = ${aqi}, which exceeds your threshold of ${sub.threshold}.\n\nTo unsubscribe, visit: https://bcaqiq.netlify.app`;
 
       transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: sub.email,
         subject: `AQI Alert for ${sub.device}`,
         text: msg
-      }, (err, info) => {
-        if (err) console.error(`Email error: ${err}`);
-        else console.log(`📧 Sent alert to ${sub.email}`);
+      }, async (err, info) => {
+        if (err) {
+          console.error(`❌ Email error: ${err}`);
+        } else {
+          console.log(`📧 Alert sent to ${sub.email}`);
+          sub.lastAlertSentAt = now;
+          sub.lastAQIStatus = 'above';
+          await sub.save();
+        }
       });
+    }
 
-      alertsSent.add(sub.email);
+    // Reset if AQI has dropped below threshold again
+    else if (!isAbove && wasAbove) {
+      sub.lastAQIStatus = 'below';
+      await sub.save();
+      console.log(`🔄 AQI back below threshold for ${sub.email}, ready for future alerts.`);
     }
   }
-}, 60000); // 1 minute
+}, 60000); // check every 60 seconds
 
+// Start Server
 app.listen(port, () => {
-  console.log(`🚀 Server running: http://localhost:${port}`);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });

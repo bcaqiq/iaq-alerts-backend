@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
 
 const SubscriberSchema = new mongoose.Schema({
-  email: { type: String, required: true },
-  device: { type: String, required: true },
-  channelId: { type: String, required: true },
-  fieldNum: { type: Number, required: true },
-  threshold: { type: Number, required: true }
+  email: String,
+  device: String,
+  threshold: Number,
+  channelId: String,
+  fieldNum: Number,
+  lastAlertSentAt: Date,
+  lastAQIStatus: {
+    type: String,
+    enum: ['above', 'below'],
+    default: 'below'
+  }
 });
 
 module.exports = mongoose.model('Subscriber', SubscriberSchema);
