@@ -261,11 +261,11 @@ function fetchPM25ForAQI() {
           document.getElementById('aqiDescription').innerText = aqiData.description;
           document.getElementById('aqiCard').style.backgroundColor = getAQIColor(aqiData.value);
           const alertThreshold = 100;
-          if (aqiData.value > alertThreshold) {
+          if (aqi.value > alertThreshold) {
             triggerEmailNotification(
               "user@example.com",
               `Air Quality Alert for ${selectedDevice.name}`,
-              `Alert! The current AQI is ${aqiData.value.toFixed(0)}, which exceeds your threshold of ${alertThreshold}.`
+              `Alert! The current AQI is ${aqi.value.toFixed(0)}, which exceeds your threshold of ${alertThreshold}.`
             );
           }
         } else {
