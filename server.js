@@ -33,7 +33,6 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Middleware
 app.use(helmet());
-app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve website
