@@ -11,8 +11,6 @@ const { body, validationResult } = require('express-validator');
 const Subscriber = require('./models/Subscriber');
 const { fetchLatestAQI } = require('./services/thingspeak');
 
-const cors = require('cors');
-
 const app = express();
 app.use(cors({
     origin: 'https://bcaqiq.netlify.app' 
