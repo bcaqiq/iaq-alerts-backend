@@ -1,0 +1,130 @@
+/* Global Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f7f9;
+    padding-top: 70px;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #A50021;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand,
+.navbar-nav .nav-link {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #FFC72C;
+    border-color: #FFC72C;
+    color: #000;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #e0b24d;
+    border-color: #e0b24d;
+}
+
+/* Layout */
+#mainWrapper {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Sidebar */
+.sidebar {
+    background: #ffffff;
+    padding: 20px;
+    border: 1px solid #eee;
+    width: 250px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Content Area */
+.content {
+    flex: 1;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Map */
+#map {
+    height: 400px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Chart Container */
+#chartContainer {
+    position: relative;
+}
+
+/* Chart */
+#airQualityChart {
+    width: 100% !important;
+    height: 500px !important;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Controls Section */
+.controls {
+    margin-top: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    #mainWrapper {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+    .content, .sidebar {
+        width: 100%;
+        padding: 15px;
+    }
+    .sidebar {
+        border: none;
+        border-top: 1px solid #eee;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    #map {
+        height: 300px;
+    }
+    /* Hide non-location controls on mobile */
+    .non-location-controls {
+        display: none;
+    }
+    /* Optional: Adjust font sizes for better readability */
+    h2 {
+        font-size: 1.5rem;
+    }
+    .form-label, .card-title {
+        font-size: 0.95rem;
+    }
+    .btn-primary {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}

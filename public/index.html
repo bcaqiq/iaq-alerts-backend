@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boston College Indoor Air Quality Monitoring</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Boston College IAQ</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto">
+          <!-- Additional nav items if needed -->
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Wrapper for Sidebar and Content -->
+  <div id="mainWrapper">
+    <!-- Content Area -->
+    <div class="content">
+      <h2>Boston College Campus Air Quality Monitoring</h2>
+      <!-- Map Container -->
+      <div id="map"></div>
+      
+      <!-- Controls Section -->
+      <div class="controls">
+        <!-- Location Drop Down (Always Shown) -->
+        <div class="mb-3 location-control">
+          <label for="deviceSelect" class="form-label">Select Location:</label>
+          <select id="deviceSelect" class="form-select" aria-label="Select Location">
+            <option value="device1" selected>245 Beacon St Room 311</option>
+            <option value="device2">245 Beacon St Room 302</option>
+            <option value="device3">2000 Commonwealth Ave Room 602</option>
+          </select>
+        </div>
+        
+        <!-- Other Controls (Hidden on Mobile) -->
+        <div class="non-location-controls">
+          <!-- Dropdown to select data field -->
+          <div class="mb-3">
+            <label for="fieldSelect" class="form-label">Select Data Field:</label>
+            <select id="fieldSelect" class="form-select" aria-label="Select Field">
+              <option value="1">Temperature</option>
+              <option value="2">Humidity</option>
+              <option value="3">Pressure</option>
+              <option value="4">Gas Resistance</option>
+              <option value="5">PM 1.0</option>
+              <option value="6" selected>PM 2.5</option>
+              <option value="7">PM 10.0</option>
+              <option value="8">Particle Count</option>
+            </select>
+          </div>
+          <!-- Aggregation Interval Selection -->
+          <div class="mb-3">
+            <label for="aggregationInterval" class="form-label">Interval:</label>
+            <select id="aggregationInterval" class="form-select" aria-label="Aggregation Interval">
+              <option value="10000">10 seconds</option>
+              <option value="60000" selected>1 minute</option>
+              <option value="300000">5 minutes</option>
+              <option value="900000">15 minutes</option>
+              <option value="1800000">30 minutes</option>
+              <option value="3600000">1 hour</option>
+            </select>
+          </div>
+          <!-- Time Frame Selection -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="startTime" class="form-label">Start Time:</label>
+              <input type="datetime-local" id="startTime" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label for="endTime" class="form-label">End Time:</label>
+              <input type="datetime-local" id="endTime" class="form-control" />
+            </div>
+          </div>
+          <!-- Update Button -->
+          <button id="updateTimeFrame" class="btn btn-primary mb-3">Update</button>
+          <!-- Chart Container -->
+          <div class="card mb-4" id="chartContainer">
+            <div class="card-body">
+              <canvas id="airQualityChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- End of Non-location Controls -->
+      </div>
+      <!-- End Controls Section -->
+    </div>
+
+    <!-- Sidebar (Values Display) -->
+    <div class="sidebar bg-light">
+      <!-- Selected Device Box -->
+      <div id="selectedDeviceCard" class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Selected Device</h6>
+          <p id="selectedDeviceName" class="card-text">245 Beacon St Room 311</p>
+        </div>
+      </div>
+      <!-- Data Cards -->
+      <div id="dataCards">
+        <div class="card">
+          <div class="card-body">
+            <h6 id="currentTitle" class="card-title">Current Data</h6>
+            <p id="currentValue" class="card-text">Loading...</p>
+          </div>
+        </div>
+        <!-- Indoor AQI Card -->
+        <div id="aqiCard" class="card">
+          <div class="card-body">
+            <h6 id="aqiTitle" class="card-title">Indoor AQI</h6>
+            <p id="aqiValue" class="card-text">Loading...</p>
+            <p id="aqiDescription" class="card-text">Loading description...</p>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#aqiModal">Learn more</a>
+          </div>
+        </div>
+        <!-- Outdoor AQI Card -->
+        <div id="outdoorAqiCard" class="card">
+          <div class="card-body">
+            <h6 class="card-title">Outdoor AQI</h6>
+            <p id="outdoorAqiValue" class="card-text">Loading...</p>
+            <p id="outdoorAqiDescription" class="card-text">Loading...</p>
+            <a href="https://www.airnow.gov/?city=Chestnut%20Hill&state=MA&country=USA" target="_blank">Learn more</a>
+          </div>
+        </div>
+        <!-- Alert Signup Prompt Card -->
+        <div class="card mb-4 mt-4">
+          <div class="card-body">
+            <h5 class="card-title">📧 Sign Up for AQI Alerts</h5>
+            <p class="card-text">Stay informed when air quality exceeds your threshold. <a href="#" data-bs-toggle="modal" data-bs-target="#alertSignupModal">Click here to sign up.</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- AQI Information Modal -->
+  <div class="modal fade" id="aqiModal" tabindex="-1" aria-labelledby="aqiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="aqiModalLabel">About AQI</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p>
+            The Air Quality Index (AQI) is an index for reporting daily air quality. It tells you how clean or polluted your air is and what associated health effects might be a concern.
+          </p>
+          <ul class="text-start">
+            <li><strong>0–50:</strong> Good – Air quality is satisfactory, and air pollution poses little or no risk.</li>
+            <li><strong>51–100:</strong> Moderate – Air quality is acceptable; however, there may be a risk for some people.</li>
+            <li><strong>101–150:</strong> Unhealthy for Sensitive Groups – Members of sensitive groups may experience health effects.</li>
+            <li><strong>151–200:</strong> Unhealthy – Everyone may begin to experience health effects.</li>
+            <li><strong>201–300:</strong> Very Unhealthy – Health alert: The risk of health effects is increased for everyone.</li>
+            <li><strong>301–500:</strong> Hazardous – Health warnings of emergency conditions.</li>
+          </ul>
+          <img src="imgs/EPA_AQI.png" alt="AQI Chart" class="img-fluid mb-3">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Signup Modal -->
+  <div class="modal fade" id="alertSignupModal" tabindex="-1" aria-labelledby="alertSignupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="alertSignupModalLabel">Sign Up for AQI Alerts</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="signupForm">
+            <div class="mb-3">
+              <label for="alertEmail" class="form-label">Email Address:</label>
+              <input type="email" name="email" id="alertEmail" class="form-control" required placeholder="you@example.com">
+            </div>
+            <div class="mb-3">
+              <label for="alertDevice" class="form-label">Select Location:</label>
+              <select name="deviceId" id="alertDevice" class="form-select" required>
+                <option value="device1" selected>245 Beacon St Room 311</option>
+                <option value="device2">245 Beacon St Room 302</option>
+                <option value="device3">2000 Commonwealth Ave Room 602</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="alertThreshold" class="form-label">AQI Threshold:</label>
+              <input type="number" name="threshold" id="alertThreshold" class="form-control" required placeholder="e.g. 100">
+            </div>
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- External Scripts -->
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js Zoom Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <!-- Date adapter for Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <!-- Custom JavaScript -->
+  <script src="script.js"></script>
+  
+  <!-- Signup Form Script with Device Mapping -->
+  <script>
+    // Mapping for device IDs to their corresponding ThingSpeak channel details
+    const deviceMapping = {
+      "device1": {
+        channelId: "2873817",
+        deviceName: "245 Beacon St Room 311"
+      },
+      "device2": {
+        channelId: "2720604",
+        deviceName: "245 Beacon St Room 302"
+      },
+      "device3": {
+        channelId: "2881437",
+        deviceName: "2000 Commonwealth Ave Room 602"
+      }
+    };
+
+    document.getElementById('signupForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+
+      // Retrieve channel details from the mapping using the selected device ID.
+      const selectedDevice = deviceMapping[data.deviceId];
+      if (!selectedDevice) {
+        alert("Invalid device selection.");
+        return;
+      }
+      data.channelId = selectedDevice.channelId;
+      data.device = selectedDevice.deviceName;
+      data.fieldNum = 6; // Field 6 is fixed for AQI (calculated on PM2.5)
+
+      try {
+        const res = await fetch('https://your-backend-url.com/signup', {  // Replace with your backend URL
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        alert(result.message || (result.errors ? result.errors.map(e => e.msg).join(', ') : result.error));
+      } catch (err) {
+        console.error(err);
+        alert('Something went wrong. Please try again later.');
+      }
+    });
+  </script>
+</body>
+</html>
