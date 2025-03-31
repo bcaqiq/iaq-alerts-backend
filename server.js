@@ -12,9 +12,16 @@ const Subscriber = require('./models/Subscriber');
 const { fetchLatestAQI } = require('./services/thingspeak');
 
 const app = express();
+const allowedOrigins = ['https://bcaqiq.netlify.app', 'http://localhost:3000'];
 app.use(cors({
-    origin: 'https://bcaqiq.netlify.app' 
-  }));  
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 const port = process.env.PORT || 3000;
 
 // Connect to MongoDB

@@ -141,8 +141,8 @@
         <!-- Alert Signup Prompt Card -->
         <div class="card mb-4 mt-4">
           <div class="card-body">
-            <h5 class="card-title">📧 Sign Up for AQI Alerts</h5>
-            <p class="card-text">Stay informed when air quality exceeds your threshold. <a href="#" data-bs-toggle="modal" data-bs-target="#alertSignupModal">Click here to sign up.</a></p>
+            <h6 class="card-title">Sign Up for AQI Alerts</h6>
+            <p class="card-text">Be alerted when air quality exceeds your threshold. <a href="#" data-bs-toggle="modal" data-bs-target="#alertSignupModal">Sign up.</a></p>
           </div>
         </div>
       </div>
@@ -224,54 +224,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <!-- Custom JavaScript -->
   <script src="script.js"></script>
-  
-  <!-- Signup Form Script with Device Mapping -->
-  <script>
-    // Mapping for device IDs to their corresponding ThingSpeak channel details
-    const deviceMapping = {
-      "device1": {
-        channelId: "2873817",
-        deviceName: "245 Beacon St Room 311"
-      },
-      "device2": {
-        channelId: "2720604",
-        deviceName: "245 Beacon St Room 302"
-      },
-      "device3": {
-        channelId: "2881437",
-        deviceName: "2000 Commonwealth Ave Room 602"
-      }
-    };
 
-    document.getElementById('signupForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-
-      // Retrieve channel details from the mapping using the selected device ID.
-      const selectedDevice = deviceMapping[data.deviceId];
-      if (!selectedDevice) {
-        alert("Invalid device selection.");
-        return;
-      }
-      data.channelId = selectedDevice.channelId;
-      data.device = selectedDevice.deviceName;
-      data.fieldNum = 6; // Field 6 is fixed for AQI (calculated on PM2.5)
-
-      try {
-        const res = await fetch('https://your-backend-url.com/signup', {  // Replace with your backend URL
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        const result = await res.json();
-        alert(result.message || (result.errors ? result.errors.map(e => e.msg).join(', ') : result.error));
-      } catch (err) {
-        console.error(err);
-        alert('Something went wrong. Please try again later.');
-      }
-    });
-  </script>
 </body>
 </html>

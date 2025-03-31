@@ -554,3 +554,50 @@ setInterval(() => {
   fetchPM25ForAQI(); 
 }, 60000);
 setInterval(fetchOutdoorAQIAirNow, 300000);
+
+// --- Signup Form Script with Device Mapping ---
+const deviceMapping = {
+  "device1": {
+    channelId: "2873817",
+    deviceName: "245 Beacon St Room 311"
+  },
+  "device2": {
+    channelId: "2720604",
+    deviceName: "245 Beacon St Room 302"
+  },
+  "device3": {
+    channelId: "2881437",
+    deviceName: "2000 Commonwealth Ave Room 602"
+  }
+};
+
+document.getElementById('signupForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+
+  const selectedDevice = deviceMapping[data.deviceId];
+  if (!selectedDevice) {
+    alert("Invalid device selection.");
+    return;
+  }
+
+  data.channelId = selectedDevice.channelId;
+  data.device = selectedDevice.deviceName;
+  data.fieldNum = 6;
+
+  try {
+    const res = await fetch('https://iaq-alerts-api.onrender.com/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    alert(result.message || (result.errors ? result.errors.map(e => e.msg).join(', ') : result.error));
+  } catch (err) {
+    console.error(err);
+    alert('Something went wrong. Please try again later.');
+  }
+});
+
