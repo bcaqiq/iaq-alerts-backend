@@ -126,7 +126,7 @@ setInterval(async () => {
 
     // If AQI crosses from below to above threshold
     if (isAbove && !wasAbove) {
-      const msg = `Air Quality Alert for ${sub.device}\n\nAQI is ${aqi}, which exceeds your set threshold of ${sub.threshold}.\n\nFor real-time air quality updates, or to unsubscribe or adjust your alert threshold, visit: https://bcaqiq.netlify.app\n\n\n -- AQIQ`;
+      const msg = `Air Quality Alert for ${sub.device}\n\nThe AQI exceeds your set threshold of ${sub.threshold}.\n\nTo view the real time AQI, or to adjust your subscription settings, visit: https://bcaqiq.netlify.app\n\n\n -- AQIQ`;
 
       transporter.sendMail({
         from: process.env.EMAIL_USER,
