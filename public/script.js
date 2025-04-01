@@ -261,11 +261,11 @@ function fetchPM25ForAQI() {
           document.getElementById('aqiDescription').innerText = aqiData.description;
           document.getElementById('aqiCard').style.backgroundColor = getAQIColor(aqiData.value);
           const alertThreshold = 100;
-          if (aqi.value > alertThreshold) {
+          if (aqiData.value > alertThreshold) {
             triggerEmailNotification(
               "user@example.com",
               `Air Quality Alert for ${selectedDevice.name}`,
-              `Alert! The current AQI is ${aqi.value.toFixed(0)}, which exceeds your threshold of ${alertThreshold}.`
+              `Alert! The current AQI is ${aqiData.value.toFixed(0)}, which exceeds your threshold of ${alertThreshold}.`
             );
           }
         } else {
@@ -477,49 +477,6 @@ function triggerEmailNotification(recipientEmail, subject, message) {
   });
 }
 
-// --- Subscription Management (Commented Out) ---
-/*
-document.getElementById('subscriptionForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  let email = document.getElementById('subscriberEmail').value;
-  let deviceId = document.getElementById('deviceSubscription').value;
-  let threshold = document.getElementById('thresholdValue').value;
-  let url = `https://api.thingspeak.com/update?api_key=POZVWXEZE9BHUIU4&field1=${encodeURIComponent(email)}&field2=${encodeURIComponent(deviceId)}&field3=${encodeURIComponent(threshold)}&field4=1`;
-  fetch(url)
-    .then(response => response.text())
-    .then(data => {
-      if (data > 0) {
-        document.getElementById('subscriptionMessage').innerText = 'Subscribed successfully!';
-      } else {
-        document.getElementById('subscriptionMessage').innerText = 'Subscription failed. Please try again.';
-      }
-    })
-    .catch(error => {
-      console.error('Subscription error:', error);
-      document.getElementById('subscriptionMessage').innerText = 'Subscription error. Please try again.';
-    });
-});
-
-document.getElementById('unsubscribeButton').addEventListener('click', function() {
-  let email = document.getElementById('subscriberEmail').value;
-  let deviceId = document.getElementById('deviceSubscription').value;
-  let url = `https://api.thingspeak.com/update?api_key=POZVWXEZE9BHUIU4&field1=${encodeURIComponent(email)}&field2=${encodeURIComponent(deviceId)}&field3=0&field4=0`;
-  fetch(url)
-    .then(response => response.text())
-    .then(data => {
-      if (data > 0) {
-        document.getElementById('subscriptionMessage').innerText = 'Unsubscribed successfully!';
-      } else {
-        document.getElementById('subscriptionMessage').innerText = 'Unsubscription failed. Please try again.';
-      }
-    })
-    .catch(error => {
-      console.error('Unsubscription error:', error);
-      document.getElementById('subscriptionMessage').innerText = 'Unsubscription error. Please try again.';
-    });
-});
-*/
-
 // --- New: Check AQI Data Freshness ---
 // This function checks if fresh AQI data has been received within the last 3 minutes.
 // If not, it displays "Device Down" in the AQI display area.
@@ -531,7 +488,7 @@ function checkAqiFreshness() {
   }
   const diff = now - lastAqiTimestamp;
   console.log("Time since last AQI update (ms):", diff);
-  if (diff > 60000) { // 3 minutes = 180,000 ms
+  if (diff > 60000) { // 1 minute without update
     document.getElementById('aqiValue').innerText = "Device Down";
     document.getElementById('aqiDescription').innerText = "";
     document.getElementById('aqiCard').style.backgroundColor = "#ffcccc"; // Warning color
@@ -556,6 +513,7 @@ setInterval(() => {
 setInterval(fetchOutdoorAQIAirNow, 300000);
 
 // --- Signup Form Script with Device Mapping ---
+// Rate limiting: only allow signup if 5 minutes have passed since the last one.
 const deviceMapping = {
   "device1": {
     channelId: "2873817",
@@ -573,6 +531,15 @@ const deviceMapping = {
 
 document.getElementById('signupForm').addEventListener('submit', async function (e) {
   e.preventDefault();
+
+  // Check rate limiting: allow signup only if 5 minutes (300000 ms) have passed.
+  const lastSignup = localStorage.getItem('lastSignupTimestamp');
+  const now = Date.now();
+  if (lastSignup && now - parseInt(lastSignup) < 300000) {
+    alert('Please wait at least 5 minutes before signing up for another alert.');
+    return;
+  }
+
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData.entries());
 
@@ -595,9 +562,35 @@ document.getElementById('signupForm').addEventListener('submit', async function 
 
     const result = await res.json();
     alert(result.message || (result.errors ? result.errors.map(e => e.msg).join(', ') : result.error));
+    // Record the signup timestamp
+    localStorage.setItem('lastSignupTimestamp', now.toString());
   } catch (err) {
     console.error(err);
     alert('Something went wrong. Please try again later.');
   }
 });
 
+// --- Unsubscribe Form Event Listener ---
+// This listener handles the unsubscribe process.
+document.getElementById('unsubscribeForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+  try {
+    const res = await fetch('/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    alert(result.message || result.error || 'Unsubscription failed');
+
+    // Close the unsubscribe modal (assuming Bootstrap modal is used)
+    const modalElement = document.getElementById('alertUnsubscribeModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    modalInstance.hide();
+  } catch (err) {
+    console.error('Unsubscription error:', err);
+    alert('Error during unsubscription. Please try again later.');
+  }
+});
