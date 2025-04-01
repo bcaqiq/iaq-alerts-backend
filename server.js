@@ -83,19 +83,21 @@ app.post('/signup', [
       await sub.save();
   
       // Send welcome email
-      const welcomeMessage = `You're now subscribed to AQI alerts for ${device}!
+      const welcomeMessage = `You're now subscribed to Air Quality alerts for ${device}!
   
   We'll notify you when the air quality goes above your threshold of ${threshold}.
   
   Please mark this email as "Not Spam" or add us to your contacts so you never miss an alert.
   
-  To unsubscribe, visit: https://bcaqiq.netlify.app`;
+  To unsubscribe, visit: https://bcaqiq.netlify.app
+  
+  -- AQIQ`;
   
       try {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: email,
-          subject: `Welcome to AQI Alerts for ${device}`,
+          subject: `Welcome to Air Quality Alerts for ${device}`,
           text: welcomeMessage
         });
         console.log(`Welcome email sent to ${email}`);
