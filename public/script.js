@@ -24,9 +24,9 @@ function ensureDate(val) {
 }
 
 const devices = [
-  { id: 'device1', name: '245 Beacon St Room 311', channelId: '2873817', readApiKey: 'U0KE7VEERCQLOSE6', lat: 42.334136, lng: -71.168963 },
-  { id: 'device2', name: '245 Beacon St Room 302', channelId: '2720604', readApiKey: 'LY5PUX26SYQJGFVE', lat: 42.334129, lng: -71.169167 },
-  { id: 'device3', name: '2000 Commonwealth Ave Room 602', channelId: '2881437', readApiKey: 'PHJDULIAK7W03WIU', lat: 42.3396, lng: -71.1586 }
+  { id: '245 Beacon St Room 311', name: '245 Beacon St Room 311', channelId: '2873817', readApiKey: 'U0KE7VEERCQLOSE6', lat: 42.334136, lng: -71.168963 },
+  { id: '245 Beacon St Room 302', name: '245 Beacon St Room 302', channelId: '2720604', readApiKey: 'LY5PUX26SYQJGFVE', lat: 42.334129, lng: -71.169167 },
+  { id: '2000 Commonwealth Ave Room 602', name: '2000 Commonwealth Ave Room 602', channelId: '2881437', readApiKey: 'PHJDULIAK7W03WIU', lat: 42.3396, lng: -71.1586 }
 ];
 
 const fieldLabels = {
@@ -515,15 +515,15 @@ setInterval(fetchOutdoorAQIAirNow, 300000);
 // --- Signup Form Script with Device Mapping ---
 // Rate limiting: only allow signup if 5 minutes have passed since the last one.
 const deviceMapping = {
-  "device1": {
+  "245 Beacon St Room 311": {
     channelId: "2873817",
     deviceName: "245 Beacon St Room 311"
   },
-  "device2": {
+  "245 Beacon St Room 302": {
     channelId: "2720604",
     deviceName: "245 Beacon St Room 302"
   },
-  "device3": {
+  "2000 Commonwealth Ave Room 602": {
     channelId: "2881437",
     deviceName: "2000 Commonwealth Ave Room 602"
   }
