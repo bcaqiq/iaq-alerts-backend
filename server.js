@@ -111,7 +111,7 @@ setInterval(async () => {
       console.log(`AQI back below threshold for ${sub.email}, ready for future alerts.`);
     }
   }
-}, 60000); // check every 60 seconds
+}, 10000); // check every 60 seconds
 
 // Unsubscribe Route with Debugging
 app.post('/unsubscribe', [
