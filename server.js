@@ -50,26 +50,65 @@ const transporter = nodemailer.createTransport({
 
 // Subscribe Route
 app.post('/signup', [
-  body('email').isEmail(),
-  body('device').notEmpty(),
-  body('threshold').isNumeric(),
-  body('channelId').notEmpty(),
-  body('fieldNum').isInt()
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
-  const { email, device, threshold, channelId, fieldNum } = req.body;
-
-  try {
-    const sub = new Subscriber({ email, device, threshold, channelId, fieldNum });
-    await sub.save();
-    res.json({ message: 'Subscribed successfully!' });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+    body('email').isEmail(),
+    body('device').notEmpty(),
+    body('threshold').isNumeric(),
+    body('channelId').notEmpty(),
+    body('fieldNum').isInt()
+  ], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
+  
+    const { email, device, threshold, channelId, fieldNum } = req.body;
+  
+    try {
+      const existing = await Subscriber.findOne({ email, device });
+  
+      if (existing) {
+        return res.status(200).json({
+          message: 'You are already subscribed to this device. No welcome email sent.'
+        });
+      }
+  
+      const sub = new Subscriber({
+        email,
+        device,
+        threshold,
+        channelId,
+        fieldNum,
+        lastAQIStatus: 'below'
+      });
+  
+      await sub.save();
+  
+      // Send welcome email
+      const welcomeMessage = `You're now subscribed to AQI alerts for ${device}!
+  
+  We'll notify you when the air quality goes above your threshold of ${threshold}.
+  
+  Please mark this email as "Not Spam" or add us to your contacts so you never miss an alert.
+  
+  To unsubscribe, visit: https://bcaqiq.netlify.app`;
+  
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: `Welcome to AQI Alerts for ${device}`,
+          text: welcomeMessage
+        });
+        console.log(`Welcome email sent to ${email}`);
+      } catch (err) {
+        console.error("Failed to send welcome email:", err);
+      }
+  
+      res.json({ message: 'Subscribed and welcome email sent!' });
+    } catch (err) {
+      console.error("Signup error:", err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });  
 
 // AQI Monitoring Loop
 setInterval(async () => {
@@ -85,7 +124,7 @@ setInterval(async () => {
 
     // If AQI crosses from below to above threshold
     if (isAbove && !wasAbove) {
-      const msg = `Air Quality Alert for ${sub.device}:\n\nAQI is ${aqi}, which exceeds your set threshold of ${sub.threshold}.\n\nTo unsubscribe or change your threshold, visit: https://bcaqiq.netlify.app\n\n\n -- AQIQ`;
+      const msg = `Air Quality Alert for ${sub.device}\n\nAQI is ${aqi}, which exceeds your set threshold of ${sub.threshold}.\n\nFor real-time air quality updates, or to unsubscribe or adjust your alert threshold, visit: https://bcaqiq.netlify.app\n\n\n -- AQIQ`;
 
       transporter.sendMail({
         from: process.env.EMAIL_USER,
