@@ -113,30 +113,45 @@ setInterval(async () => {
   }
 }, 60000); // check every 60 seconds
 
-// Unsubscribe Route
+// Unsubscribe Route with Debugging
 app.post('/unsubscribe', [
     body('email').isEmail(),
     body('device').notEmpty()
   ], async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty())
+    if (!errors.isEmpty()) {
+      console.log("❌ Validation error:", errors.array());
       return res.status(400).json({ errors: errors.array() });
+    }
   
     const { email, device } = req.body;
+    console.log("📩 Unsubscribe request received:");
+    console.log("Email:", email);
+    console.log("Device:", device);
   
     try {
-      // Remove the subscriber matching the email and device
+      // Show all current subscriptions for debugging
+      const all = await Subscriber.find();
+      console.log("📋 Current subscriptions:");
+      all.forEach(sub => {
+        console.log(` - ${sub.email} / ${sub.device}`);
+      });
+  
+      // Try to delete the matching subscriber
       const result = await Subscriber.findOneAndDelete({ email, device });
       if (result) {
+        console.log(`✅ Unsubscribed: ${email} from ${device}`);
         res.json({ message: 'Unsubscribed successfully!' });
       } else {
+        console.log(`❌ No match found to unsubscribe: ${email}, ${device}`);
         res.status(404).json({ error: 'Subscription not found.' });
       }
     } catch (err) {
-      console.error("Error during unsubscription:", err);
+      console.error("🔥 Error during unsubscription:", err);
       res.status(500).json({ error: 'Server error' });
     }
   });
+  
   
 
 // Start Server
