@@ -577,7 +577,8 @@ document.getElementById('unsubscribeForm').addEventListener('submit', async func
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData.entries());
   try {
-    const res = await fetch('/unsubscribe', {
+    // Update this URL to your backend endpoint.
+    const res = await fetch('https://iaq-alerts-backend.onrender.com/unsubscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -585,7 +586,7 @@ document.getElementById('unsubscribeForm').addEventListener('submit', async func
     const result = await res.json();
     alert(result.message || result.error || 'Unsubscription failed');
 
-    // Close the unsubscribe modal (assuming Bootstrap modal is used)
+    // Close the unsubscribe modal (if using Bootstrap)
     const modalElement = document.getElementById('alertUnsubscribeModal');
     const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     modalInstance.hide();
@@ -594,3 +595,4 @@ document.getElementById('unsubscribeForm').addEventListener('submit', async func
     alert('Error during unsubscription. Please try again later.');
   }
 });
+
