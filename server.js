@@ -30,8 +30,8 @@ app.use(cors({
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB error:", err));
+}).then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB error:", err));
 
 // Middleware
 app.use(helmet());
@@ -65,7 +65,7 @@ app.post('/signup', [
   try {
     const sub = new Subscriber({ email, device, threshold, channelId, fieldNum });
     await sub.save();
-    res.json({ message: '✅ Subscribed!' });
+    res.json({ message: 'Subscribed successfully!' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -85,18 +85,18 @@ setInterval(async () => {
 
     // If AQI crosses from below to above threshold
     if (isAbove && !wasAbove) {
-      const msg = `⚠️ Air Quality Alert for ${sub.device}:\nAQI = ${aqi}, which exceeds your threshold of ${sub.threshold}.\n\nTo unsubscribe, visit: https://bcaqiq.netlify.app`;
+      const msg = `Air Quality Alert for ${sub.device}:\n\nAQI is ${aqi}, which exceeds your set threshold of ${sub.threshold}.\n\nTo unsubscribe or change your threshold, visit: https://bcaqiq.netlify.app\n\n\n -- AQIQ`;
 
       transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: sub.email,
-        subject: `AQI Alert for ${sub.device}`,
+        subject: `⚠️ Air Quality Alert for ${sub.device}`,
         text: msg
       }, async (err, info) => {
         if (err) {
-          console.error(`❌ Email error: ${err}`);
+          console.error(`Email error: ${err}`);
         } else {
-          console.log(`📧 Alert sent to ${sub.email}`);
+          console.log(`Alert sent to ${sub.email}`);
           sub.lastAlertSentAt = now;
           sub.lastAQIStatus = 'above';
           await sub.save();
@@ -108,7 +108,7 @@ setInterval(async () => {
     else if (!isAbove && wasAbove) {
       sub.lastAQIStatus = 'below';
       await sub.save();
-      console.log(`🔄 AQI back below threshold for ${sub.email}, ready for future alerts.`);
+      console.log(`AQI back below threshold for ${sub.email}, ready for future alerts.`);
     }
   }
 }, 60000); // check every 60 seconds
@@ -120,19 +120,19 @@ app.post('/unsubscribe', [
   ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log("❌ Validation error:", errors.array());
+      console.log("Validation error:", errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
   
     const { email, device } = req.body;
-    console.log("📩 Unsubscribe request received:");
+    console.log("Unsubscribe request received:");
     console.log("Email:", email);
     console.log("Device:", device);
   
     try {
       // Show all current subscriptions for debugging
       const all = await Subscriber.find();
-      console.log("📋 Current subscriptions:");
+      console.log("Current subscriptions:");
       all.forEach(sub => {
         console.log(` - ${sub.email} / ${sub.device}`);
       });
@@ -140,14 +140,14 @@ app.post('/unsubscribe', [
       // Try to delete the matching subscriber
       const result = await Subscriber.findOneAndDelete({ email, device });
       if (result) {
-        console.log(`✅ Unsubscribed: ${email} from ${device}`);
+        console.log(`Unsubscribed: ${email} from ${device}`);
         res.json({ message: 'Unsubscribed successfully!' });
       } else {
-        console.log(`❌ No match found to unsubscribe: ${email}, ${device}`);
+        console.log(`No match found to unsubscribe: ${email}, ${device}`);
         res.status(404).json({ error: 'Subscription not found.' });
       }
     } catch (err) {
-      console.error("🔥 Error during unsubscription:", err);
+      console.error("Error during unsubscription:", err);
       res.status(500).json({ error: 'Server error' });
     }
   });
