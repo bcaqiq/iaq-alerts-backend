@@ -113,6 +113,32 @@ setInterval(async () => {
   }
 }, 60000); // check every 60 seconds
 
+// Unsubscribe Route
+app.post('/unsubscribe', [
+    body('email').isEmail(),
+    body('device').notEmpty()
+  ], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
+  
+    const { email, device } = req.body;
+  
+    try {
+      // Remove the subscriber matching the email and device
+      const result = await Subscriber.findOneAndDelete({ email, device });
+      if (result) {
+        res.json({ message: 'Unsubscribed successfully!' });
+      } else {
+        res.status(404).json({ error: 'Subscription not found.' });
+      }
+    } catch (err) {
+      console.error("Error during unsubscription:", err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+  
+
 // Start Server
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
