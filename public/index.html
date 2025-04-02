@@ -124,7 +124,7 @@
         <!-- Indoor AQI Card -->
         <div id="aqiCard" class="card">
           <div class="card-body">
-            <h6 id="aqiTitle" class="card-title">Indoor AQI</h6>
+            <h6 id="aqiTitle" class="card-title">Indoor AQI (PM2.5)</h6>
             <p id="aqiValue" class="card-text">Loading...</p>
             <p id="aqiDescription" class="card-text">Loading description...</p>
             <a href="#" data-bs-toggle="modal" data-bs-target="#aqiModal">Learn more</a>
@@ -133,7 +133,7 @@
         <!-- Outdoor AQI Card -->
         <div id="outdoorAqiCard" class="card">
           <div class="card-body">
-            <h6 class="card-title">Outdoor AQI</h6>
+            <h6 class="card-title">Outdoor AQI (PM2.5)</h6>
             <p id="outdoorAqiValue" class="card-text">Loading...</p>
             <p id="outdoorAqiDescription" class="card-text">Loading...</p>
             <a href="https://www.airnow.gov/?city=Chestnut%20Hill&state=MA&country=USA" target="_blank">Learn more</a>
@@ -208,6 +208,7 @@
               <label for="alertThreshold" class="form-label">AQI Threshold:</label>
               <input type="number" name="threshold" id="alertThreshold" class="form-control" required placeholder="e.g. 100">
             </div>
+            <img src="imgs/EPA_AQI.png" alt="AQI Chart" class="img-fluid mb-3">
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Subscribe</button>
@@ -262,5 +263,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <!-- Custom JavaScript -->
   <script src="script.js"></script>
+
+  <!-- Server Wake Loader -->
+<div id="serverWakeLoader" class="server-wake-loader" style="display:none;">
+  <div class="loader-text">Starting up the server...
+    This may take a few seconds. If nothing happens after 30 seconds, please try again!</div>
+</div>
+
 </body>
 </html>

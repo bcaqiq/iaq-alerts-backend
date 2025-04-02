@@ -554,6 +554,11 @@ document.getElementById('signupForm').addEventListener('submit', async function 
   data.fieldNum = 6;
 
   try {
+    const modalElement = document.getElementById('alertSignupModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    modalInstance.hide();
+
+    document.getElementById('serverWakeLoader').style.display = 'flex';
     const res = await fetch('https://iaq-alerts-backend.onrender.com/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -562,11 +567,13 @@ document.getElementById('signupForm').addEventListener('submit', async function 
 
     const result = await res.json();
     alert(result.message || (result.errors ? result.errors.map(e => e.msg).join(', ') : result.error));
+    document.getElementById('serverWakeLoader').style.display = 'none';
     // Record the signup timestamp
     localStorage.setItem('lastSignupTimestamp', now.toString());
   } catch (err) {
     console.error(err);
     alert('Something went wrong. Please try again later.');
+    document.getElementById('serverWakeLoader').style.display = 'none';
   }
 });
 
@@ -577,7 +584,12 @@ document.getElementById('unsubscribeForm').addEventListener('submit', async func
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData.entries());
   try {
+    const modalElement = document.getElementById('alertUnsubscribeModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    modalInstance.hide();
+
     // Update this URL to your backend endpoint.
+    document.getElementById('serverWakeLoader').style.display = 'flex';
     const res = await fetch('https://iaq-alerts-backend.onrender.com/unsubscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -585,14 +597,12 @@ document.getElementById('unsubscribeForm').addEventListener('submit', async func
     });
     const result = await res.json();
     alert(result.message || result.error || 'Unsubscription failed');
-
-    // Close the unsubscribe modal (if using Bootstrap)
-    const modalElement = document.getElementById('alertUnsubscribeModal');
-    const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-    modalInstance.hide();
+    document.getElementById('serverWakeLoader').style.display = 'none';
   } catch (err) {
     console.error('Unsubscription error:', err);
     alert('Error during unsubscription. Please try again later.');
+    document.getElementById('serverWakeLoader').style.display = 'none';
   }
 });
+
 
